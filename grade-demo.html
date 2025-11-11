@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Grade Demo</title>
+  <link rel="stylesheet" href="lab05_style.css">
+</head>
+<body>
+  <header>
+    <h1>Grade Demo</h1>
+  </header>
+
+  <main>
+    <form id="gradeForm"></form>
+    <div id="results"></div>
+  </main>
+
+  <footer>
+    <p><a href="index.html">Back to Index</a></p>
+  </footer>
+
+  <script>
+    let studentCount;
+
+    // Ask until a valid positive integer is entered
+    while (true) {
+      const input = window.prompt("Enter the number of students:");
+      if (input === null) continue;
+      studentCount = parseInt(input, 10);
+      if (!isNaN(studentCount) && studentCount > 0) break;
+      alert("Please enter a valid positive number.");
+    }
+
+    const form = document.getElementById("gradeForm");
+    form.innerHTML = "";
+
+    // Create a fieldset for each student
+    for (let i = 1; i <= studentCount; i++) {
+      const fieldset = document.createElement("fieldset");
+      const legend = document.createElement("legend");
+      legend.textContent = "Student " + i;
+      fieldset.appendChild(legend);
+
+      const nameLabel = document.createElement("label");
+      nameLabel.textContent = "Name: ";
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.required = true;
+      nameLabel.appendChild(nameInput);
+      fieldset.appendChild(nameLabel);
+
+      for (let j = 1; j <= 3; j++) {
+        const gradeLabel = document.createElement("label");
+        gradeLabel.textContent = `Grade ${j}: `;
+        const gradeInput = document.createElement("input");
+        gradeInput.type = "number";
+        gradeInput.min = 0;
+        gradeInput.max = 100;
+        gradeInput.required = true;
+        gradeLabel.appendChild(gradeInput);
+        fieldset.appendChild(gradeLabel);
+      }
+
+      form.appendChild(fieldset);
+    }
+
+    // Add compute button
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Compute Results";
+    form.appendChild(button);
+
+    // On click, build results table
+    button.addEventListener("click", () => {
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "";
+
+      const table = document.createElement("table");
+      const header = document.createElement("tr");
+      ["Name", "Grade 1", "Grade 2", "Grade 3", "Average", "Status"].forEach(h => {
+        const th = document.createElement("th");
+        th.textContent = h;
+        header.appendChild(th);
+      });
+      table.appendChild(header);
+
+      let totalAverage = 0;
+
+      const fieldsets = form.querySelectorAll("fieldset");
+      fieldsets.forEach(set => {
+        const inputs = set.querySelectorAll("input");
+        const name = inputs[0].value.trim();
+        const grades = [inputs[1].value, inputs[2].value, inputs[3].value].map(Number);
+        if (!name || grades.some(isNaN)) {
+          alert("Please fill all fields with valid data.");
+          return;
+        }
+
+        const avg = (grades[0] + grades[1] + grades[2]) / 3;
+        totalAverage += avg;
+
+        const row = document.createElement("tr");
+        [name, ...grades, avg.toFixed(2), avg >= 50 ? "Pass" : "Fail"].forEach((val, idx) => {
+          const td = document.createElement("td");
