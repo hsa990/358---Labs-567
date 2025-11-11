@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gallery Demo — Lab 7</title>
+  <link rel="stylesheet" href="lab05_style.css" />
+</head>
+<body>
+  <header>
+    <h1>Gallery Demo (DOM Manipulation)</h1>
+    <nav><a href="index.html">Back to Index</a></nav>
+  </header>
+
+  <main>
+    <!-- A. Button controls -->
+    <section>
+      <h2>Controls</h2>
+      <button id="btnDisableSelf">Disable Me</button>
+      <button id="btnToggleSize">Toggle Size (150↔250)</button>
+      <button id="btnChangeSrc">Change Image</button>
+      <button id="btnReset">Reset</button>
+      <p id="controlFeedback" aria-live="polite"></p>
+    </section>
+
+    <!-- B. Image gallery -->
+    <section>
+      <h2>Gallery</h2>
+      <figure>
+        <img id="mainImg" src="https://picsum.photos/id/1025/150/150" alt="Main image" width="150" height="150">
+        <figcaption id="imgCaption">Current: 1025 (150×150)</figcaption>
+      </figure>
+
+      <div>
+        <img class="thumb" src="https://picsum.photos/id/1025/80/80" alt="Thumb 1025" data-id="1025">
+        <img class="thumb" src="https://picsum.photos/id/1062/80/80" alt="Thumb 1062" data-id="1062">
+        <img class="thumb" src="https://picsum.photos/id/1003/80/80" alt="Thumb 1003" data-id="1003">
+        <img class="thumb" src="https://picsum.photos/id/237/80/80" alt="Thumb 237" data-id="237">
+      </div>
+
+      <p id="imgFeedback" aria-live="polite"></p>
+    </section>
+
+    <!-- C. Dynamic link -->
+    <section>
+      <h2>Dynamic Link</h2>
+      <label for="linkSelect">Choose a destination:</label>
+      <select id="linkSelect">
+        <option value="https://developer.mozilla.org/" data-text="MDN Web Docs">MDN Web Docs</option>
+        <option value="https://www.w3.org/" data-text="W3C">W3C</option>
+        <option value="https://en.wikipedia.org/wiki/Document_Object_Model" data-text="Wikipedia — DOM">Wikipedia — DOM</option>
+      </select>
+      <a id="dynamicLink" href="https://developer.mozilla.org/" target="_blank" rel="noopener">MDN Web Docs</a>
+      <p id="linkFeedback" aria-live="polite"></p>
+    </section>
+
+    <!-- D. Add notes -->
+    <section>
+      <h2>Notes (appendChild demo)</h2>
+      <button id="btnAddNote">Add Note</button>
+      <ul id="notesList"></ul>
+      <p id="notesFeedback" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer>
+    <p><a href="index.html">Back to Index</a></p>
+  </footer>
+
+  <script>
+    // References
+    const btnDisableSelf = document.getElementById('btnDisableSelf');
+    const btnToggleSize  = document.getElementById('btnToggleSize');
+    const btnChangeSrc   = document.getElementById('btnChangeSrc');
+    const btnReset       = document.getElementById('btnReset');
+    const controlFeedback = document.getElementById('controlFeedback');
+
+    const mainImg     = document.getElementById('mainImg');
+    const imgCaption  = document.getElementById('imgCaption');
+    const imgFeedback = document.getElementById('imgFeedback');
+    const thumbs      = document.querySelectorAll('.thumb');
+
+    const linkSelect   = document.getElementById('linkSelect');
+    const dynamicLink  = document.getElementById('dynamicLink');
+    const linkFeedback = document.getElementById('linkFeedback');
+
+    const btnAddNote   = document.getElementById('btnAddNote');
+    const notesList    = document.getElementById('notesList');
+    const notesFeedback = document.getElementById('notesFeedback');
+
+    // Defaults
+    const DEFAULT = { id: 1025, size: 150 };
+    let currentId = DEFAULT.id;
+    let isLarge = false;
+    let noteCount = 0;
+
+    function setMainImage(id, size) {
+      mainImg.src = `https://picsum.photos/id/${id}/${size}/${size}`;
+      mainImg.width = size;
+      mainImg.height = size;
+      imgCaption.textContent = `Current: ${id} (${size}×${size})`;
+      imgFeedback.textContent = `Image set to ID ${id} (${size}px).`;
+    }
+
+    // Handlers
+    btnDisableSelf.onclick = () => {
+      btnDisableSelf.disabled = true;
+      controlFeedback.textContent = '"Disable Me" button is now disabled.';
+    };
+
+    btnToggleSize.onclick = () => {
+      isLarge = !isLarge;
+      const size = isLarge ? 250 : 150;
+      setMainImage(currentId, size);
+      controlFeedback.textContent = `Image size toggled to ${size}px.`;
+    };
+
+    btnChangeSrc.onclick = () => {
+      const ids = [1025, 1062, 1003, 237];
+      const next = ids[(ids.indexOf(currentId) + 1) % ids.length];
+      currentId = next;
+      setMainImage(currentId, isLarge ? 250 : 150);
+      controlFeedback.textContent = `Image source changed to ID ${currentId}.`;
+    };
+
+    thumbs.forEach(t => t.addEventListener('click', () => {
+      currentId = Number(t.dataset.id);
+      setMainImage(currentId, isLarge ? 250 : 150);
+    }));
+
+    linkSelect.onchange = () => {
+      const opt = linkSelect.selectedOptions[0];
+      dynamicLink.href = opt.value;
+      dynamicLink.textContent = opt.dataset.text;
+      linkFeedback.textContent = `Link updated to ${opt.dataset.text}`;
+    };
+
+    btnAddNote.onclick = () => {
+      noteCount++;
+      const li = document.createElement('li');
+      li.textContent = `Note ${noteCount} — added at ${new Date().toLocaleTimeString()}`;
+      notesList.appendChild(li);
+      notesFeedback.textContent = `Added Note ${noteCount}`;
+    };
+
+    btnReset.onclick = () => {
+      currentId = DEFAULT.id;
+      isLarge = false;
+      noteCount = 0;
+      notesList.innerHTML = '';
+      setMainImage(DEFAULT.id, DEFAULT.size);
+      linkSelect.selectedIndex = 0;
+      dynamicLink.href = linkSelect.value;
+      dynamicLink.textContent = linkSelect.selectedOptions[0].dataset.text;
+      btnDisableSelf.disabled = false;
+      controlFeedback.textContent = 'All settings reset.';
+      linkFeedback.textContent = 'Link reset.';
+      notesFeedback.textContent = 'Notes cleared.';
+    };
+
+    // Initialize
+    setMainImage(DEFAULT.id, DEFAULT.size);
+  </script>
+</body>
+</html>
